@@ -50,21 +50,26 @@ def value_portfolio_over_time(sim_data, portfolio, config):
             # --- Forward valuation ---
             if instrument_type == "Forward":
 
-                # V(t) = S_t e^{-q tau} - K e^{-r tau}
-                V[:, t_index, idx] = (
+                # V(t) = S_t e^{-q tau} - K e^{-r tau} (per-contract)
+                per_contract_value = (
                     S_t * np.exp(-q * tau)
                     - K * np.exp(-r * tau)
                 )
+                
+                # Scale by contracts and direction
+                contracts = float(row["Contracts"])
+                direction = 1.0 if row["Direction"].lower() == "long" else -1.0
+                V[:, t_index, idx] = direction * contracts * per_contract_value
 
             # --- Put option valuation ---
             elif instrument_type == "Option":
 
                 if tau == 0:
-                    # At maturity: intrinsic value
-                    V[:, t_index, idx] = np.maximum(K - S_t, 0.0)
+                    # At maturity: intrinsic value (per-contract)
+                    per_contract_value = np.maximum(K - S_t, 0.0)
                 else:
-                    # Vectorized BSM valuation
-                    V[:, t_index, idx] = np.array([
+                    # Vectorized BSM valuation (per-contract)
+                    per_contract_value = np.array([
                         black_scholes_put(
                             S0=S_val,
                             K=K,
@@ -75,6 +80,11 @@ def value_portfolio_over_time(sim_data, portfolio, config):
                         )
                         for S_val in S_t
                     ])
+                
+                # Scale by contracts and direction
+                contracts = float(row["Contracts"])
+                direction = 1.0 if row["Direction"].lower() == "long" else -1.0
+                V[:, t_index, idx] = direction * contracts * per_contract_value
 
             else:
                 raise ValueError(f"Unknown instrument type: {instrument_type}")
