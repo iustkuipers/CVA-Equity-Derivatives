@@ -5,6 +5,7 @@ from validation.orchestrator import run_question_1
 from workflows.exposures_CVA_workflow import compute_cva_pipeline, run_q2_reporting
 from workflows.sensitivity_analysis_workflow import run_q3_sensitivity_analysis
 from workflows.collateral_impact_workflow import run_q4_collateral_impact
+from workflows.credit_hedging_workflow import run_q5_credit_hedging
 from utils.output_writer import OutputWriter
 
 
@@ -68,13 +69,21 @@ def main():
     elapsed = time.time() - step_start
     print(f"✓ Collateral impact analysis completed in {elapsed:.2f}s")
     
+    # step 6: run credit hedging analysis (CVA and CDS sensitivities)
+    print("\n" + "="*60)
+    print("[STEP 6] Running credit hedging analysis (Q5)...")
+    step_start = time.time()
+    hedge_results = run_q5_credit_hedging(data, baseline_results)
+    elapsed = time.time() - step_start
+    print(f"✓ Credit hedging analysis completed in {elapsed:.2f}s")
+    
     # Final summary
     total_elapsed = time.time() - start_time
     print("\n" + "="*60)
     print(f"✓ ALL COMPLETE - Total execution time: {total_elapsed:.2f}s ({total_elapsed/60:.2f} min)")
     print("="*60)
     
-    return data, equity_paths, validation_results, cva_results, sensitivity_results, collateral_results
+    return data, equity_paths, validation_results, cva_results, sensitivity_results, collateral_results, hedge_results
 
 
 if __name__ == "__main__":
