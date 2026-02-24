@@ -55,7 +55,6 @@ def run_q5_credit_hedging(data, baseline_results):
     # ------------------------------------------------------------------
 
     base_spreads, delta_cds = compute_cds_sensitivities(data)
-
     # Convert nested dict to DataFrame
     df_cds = pd.DataFrame(delta_cds).T
     df_cds.columns = [f"Delta_CDS_{int(m)}Y" for m in df_cds.columns]
@@ -79,9 +78,9 @@ def run_q5_credit_hedging(data, baseline_results):
     print("  Step 1: Use 5Y CDS to neutralize [3,5] bucket")
     print("  Step 2: Use 3Y CDS (+ 5Y position) to neutralize [1,3] bucket")
     print("  Step 3: Use 1Y CDS (+ 3Y & 5Y positions) to neutralize [0,1] bucket")
-
+    flipped_notionals = {k: -v for k, v in hedge_result.notionals.items()}
     df_hedge = pd.DataFrame.from_dict(
-        hedge_result.notionals,
+        flipped_notionals,
         orient="index",
         columns=["Notional_EUR"]
     )

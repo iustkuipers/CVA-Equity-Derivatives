@@ -26,7 +26,7 @@ def apply_variation_margin(V_portfolio: np.ndarray, M: int) -> np.ndarray:
     for t in range(num_times):
 
         # Determine last margin update time index
-        last_update = (t // M) * M
+        last_update = max(0, ((t - 1) // M) * M)#(t // M) * M
 
         collateral_level = V_portfolio[:, last_update]
 

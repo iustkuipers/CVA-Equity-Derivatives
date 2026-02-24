@@ -54,7 +54,7 @@ def run_q4_collateral_impact(config, portfolio, baseline_results):
     # 2) (a) Variation Margin frequency stress: M = 1..60
     # ---------------------------------------------------
     vm_rows = []
-
+    print(f"Average V0 (Portfolio NPV at t=0): {np.mean(V_portfolio[:, 0]):.2f} EUR")
     for M in range(1, 61):
         E_vm = apply_variation_margin(V_portfolio, M=M)   # (sims, times)
         EPE_vm = compute_epe(E_vm)                        # (times,)

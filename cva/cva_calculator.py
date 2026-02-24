@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-
+'''
 def _build_piecewise_hazard_vector(times, forward_hazard_rates):
     """
     Build a hazard rate λ_k for each interval (t_{k-1}, t_k].
@@ -64,7 +64,39 @@ def _build_piecewise_hazard_vector(times, forward_hazard_rates):
         return lambdas
 
     raise TypeError("forward_hazard_rates must be a dict or a list/array.")
+'''
+def _build_piecewise_hazard_vector(times, forward_hazard_rates):
+    times = np.asarray(times)
+    n = len(times) - 1
+    lambdas = np.zeros(n)
+    
+    # 1. Normalize the keys (handle both 0_1 and 0-1 and numeric 1.0)
+    clean_rates = {}
+    for k, v in forward_hazard_rates.items():
+        if isinstance(k, str):
+            # Replace common separators
+            clean_key = k.replace("-", "_")
+            end_t = float(clean_key.split("_")[-1])
+            clean_rates[end_t] = v
+        else:
+            clean_rates[float(k)] = v
+    
+    sorted_ends = sorted(clean_rates.keys())
 
+    # 2. Map every interval to the correct bucket
+    for i in range(n):
+        t_mid = (times[i] + times[i+1]) / 2.0
+        # Find the first segment end that is >= our current time
+        found = False
+        for end_t in sorted_ends:
+            if t_mid <= end_t + 1e-9:
+                lambdas[i] = clean_rates[end_t]
+                found = True
+                break
+        if not found:
+            lambdas[i] = clean_rates[sorted_ends[-1]]
+            
+    return lambdas
 
 def compute_survival_and_default(times, forward_hazard_rates):
     """
